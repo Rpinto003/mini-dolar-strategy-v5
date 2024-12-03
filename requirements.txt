@@ -1,0 +1,31 @@
+# Data Processing
+pandas>=1.5.0
+numpy>=1.21.0
+python-dateutil>=2.8.2
+
+# Machine Learning
+scikit-learn>=1.0.0
+tensorflow>=2.8.0
+
+# Technical Analysis
+ta-lib>=0.4.0
+
+# Development
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+
+# Logging
+loguru>=0.7.0
+
+# Database
+SQLAlchemy>=1.4.0
+
+# Jupyter
+jupyter>=1.0.0
+ipykernel>=6.0.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Time handling
+pytz>=2023.3
