@@ -1,0 +1,151 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Mini Dollar Strategy - Strategy Testing\n",
+    "\n",
+    "This notebook demonstrates:\n",
+    "1. Strategy backtesting\n",
+    "2. Performance analysis\n",
+    "3. Parameter optimization"
+  ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "source": [
+    "import sys\n",
+    "sys.path.append('..')\n",
+    "\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "\n",
+    "from src.agents.coordinator import StrategyCoordinator\n",
+    "\n",
+    "# Configure plotting\n",
+    "plt.style.use('seaborn')\n",
+    "plt.rcParams['figure.figsize'] = [12, 6]\n",
+    "sns.set_palette('Set2')"
+  ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Run Strategy Backtest"
+  ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "source": [
+    "# Initialize coordinator\n",
+    "coordinator = StrategyCoordinator(\n",
+    "    initial_balance=100000,\n",
+    "    max_position=1,\n",
+    "    stop_loss=100,\n",
+    "    take_profit=200\n",
+    ")\n",
+    "\n",
+    "# Run backtest\n",
+    "results = coordinator.backtest(\n",
+    "    start_date='2023-01-01',\n",
+    "    end_date='2023-12-31',\n",
+    "    timeframe='5T'\n",
+    ")\n",
+    "\n",
+    "# Get performance metrics\n",
+    "metrics = coordinator.get_performance_metrics(results)\n",
+    "print(\"Performance Metrics:\")\n",
+    "for metric, value in metrics.items():\n",
+    "    print(f\"{metric}: {value:.2f}\")"
+  ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Analyze Results"
+  ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "source": [
+    "def plot_equity_curve(results):\n",
+    "    \"\"\"Plot equity curve from backtest results.\"\"\"\n",
+    "    plt.figure(figsize=(15, 7))\n",
+    "    plt.plot(results.index, results['balance'])\n",
+    "    plt.title('Equity Curve')\n",
+    "    plt.grid(True)\n",
+    "    plt.show()\n",
+    "\n",
+    "def plot_trade_distribution(results):\n",
+    "    \"\"\"Plot distribution of trade profits/losses.\"\"\"\n",
+    "    trades = results[results['trade_executed']]['profit']\n",
+    "    \n",
+    "    plt.figure(figsize=(15, 5))\n",
+    "    sns.histplot(trades, bins=50)\n",
+    "    plt.title('Trade Profit/Loss Distribution')\n",
+    "    plt.xlabel('Points')\n",
+    "    plt.grid(True)\n",
+    "    plt.show()\n",
+    "    \n",
+    "    print(\"\\nTrade Statistics:\")\n",
+    "    print(f\"Average Trade: {trades.mean():.2f}\")\n",
+    "    print(f\"Std Dev: {trades.std():.2f}\")\n",
+    "    print(f\"Best Trade: {trades.max():.2f}\")\n",
+    "    print(f\"Worst Trade: {trades.min():.2f}\")\n",
+    "\n",
+    "def analyze_drawdowns(results):\n",
+    "    \"\"\"Analyze drawdowns from equity curve.\"\"\"\n",
+    "    balance = results['balance']\n",
+    "    running_max = balance.expanding().max()\n",
+    "    drawdowns = (balance - running_max) / running_max * 100\n",
+    "    \n",
+    "    plt.figure(figsize=(15, 5))\n",
+    "    plt.plot(results.index, drawdowns)\n",
+    "    plt.title('Drawdown Analysis')\n",
+    "    plt.ylabel('Drawdown %')\n",
+    "    plt.grid(True)\n",
+    "    plt.show()\n",
+    "    \n",
+    "    print(\"\\nDrawdown Statistics:\")\n",
+    "    print(f\"Maximum Drawdown: {drawdowns.min():.2f}%\")\n",
+    "    print(f\"Average Drawdown: {drawdowns.mean():.2f}%\")\n",
+    "\n",
+    "# Plot analysis\n",
+    "plot_equity_curve(results)\n",
+    "plot_trade_distribution(results)\n",
+    "analyze_drawdowns(results)"
+  ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "name": "python3",
+   "display_name": "Python 3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.8.5",
+   "mimetype": "text/x-python",
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "pygments_lexer": "ipython3",
+   "nbconvert_exporter": "python",
+   "file_extension": ".py"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
