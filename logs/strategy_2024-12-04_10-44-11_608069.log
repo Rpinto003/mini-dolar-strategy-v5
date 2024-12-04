@@ -1,0 +1,37 @@
+2024-12-04 10:44:11.609 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-04 10:44:11.611 | INFO     | src.analysis.technical.strategy:__init__:25 - Initialized TechnicalStrategy with RSI=14, MA_Fast=9, MA_Slow=21
+2024-12-04 10:44:11.611 | INFO     | src.agents.market:__init__:31 - Initialized MarketAgent with balance=100000
+2024-12-04 10:44:11.611 | INFO     | src.agents.coordinator:__init__:40 - Initialized StrategyCoordinator
+2024-12-04 10:44:11.612 | INFO     | __main__:main:31 - Running backtest from 2024-06-07 10:44:11.612068 to 2024-12-04 10:44:11.612068
+2024-12-04 10:44:12.150 | INFO     | src.analysis.technical.strategy:calculate_indicators:83 - Calculated technical indicators
+2024-12-04 10:44:12.156 | INFO     | src.analysis.technical.strategy:generate_signals:111 - Generated trading signals
+2024-12-04 10:44:12.176 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5491.638
+2024-12-04 10:44:12.278 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=101.11999999999989, Balance=100101.12
+2024-12-04 10:44:12.382 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5682.413
+2024-12-04 10:44:12.405 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=106.85100000000057, Balance=100207.97099999999
+2024-12-04 10:44:12.488 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5510.435
+2024-12-04 10:44:12.575 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=103.28899999999976, Balance=100311.26
+2024-12-04 10:44:12.701 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5766.705
+2024-12-04 10:44:12.713 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-102.97699999999986, Balance=100208.283
+2024-12-04 10:44:12.721 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5830.115
+2024-12-04 10:44:12.757 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-121.23899999999958, Balance=100087.044
+2024-12-04 10:44:12.842 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5545.533
+2024-12-04 10:44:12.917 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=103.48499999999967, Balance=100190.529
+2024-12-04 10:44:13.038 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5706.354
+2024-12-04 10:44:13.211 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=104.6810000000005, Balance=100295.20999999999
+2024-12-04 10:44:13.231 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5558.183
+2024-12-04 10:44:13.281 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=101.64599999999973, Balance=100396.85599999999
+2024-12-04 10:44:13.285 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5615.327
+2024-12-04 10:44:13.304 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-101.14000000000033, Balance=100295.71599999999
+2024-12-04 10:44:13.328 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5550.597
+2024-12-04 10:44:13.468 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-100.39900000000034, Balance=100195.31699999998
+2024-12-04 10:44:13.625 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5742.612
+2024-12-04 10:44:13.718 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-102.08100000000013, Balance=100093.23599999998
+2024-12-04 10:44:13.745 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5818.088
+2024-12-04 10:44:13.778 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=110.4389999999994, Balance=100203.67499999997
+2024-12-04 10:44:13.789 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=1, Price=5688.574
+2024-12-04 10:44:13.808 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=103.41000000000076, Balance=100307.08499999998
+2024-12-04 10:44:13.938 | INFO     | src.agents.market:_open_position:82 - Opened position: Direction=-1, Price=5841.179
+2024-12-04 10:44:13.996 | INFO     | src.agents.market:_close_position:98 - Closed position: Profit=-108.93299999999999, Balance=100198.15199999997
+2024-12-04 10:44:14.039 | INFO     | src.agents.coordinator:backtest:88 - Completed backtest from 2024-06-07 to 2024-12-04
+2024-12-04 10:44:14.343 | INFO     | __main__:main:60 - Strategy execution completed successfully

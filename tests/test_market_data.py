@@ -19,10 +19,10 @@ def test_load_data(loader, sample_dates):
     """Test basic data loading functionality."""
     start_date, end_date = sample_dates
     
-    data = loader.load_data(
+    data = loader.get_minute_data(
+        interval=5,
         start_date=start_date.strftime('%Y-%m-%d'),
-        end_date=end_date.strftime('%Y-%m-%d'),
-        timeframe='5T'
+        end_date=end_date.strftime('%Y-%m-%d')
     )
     
     assert isinstance(data, pd.DataFrame)
@@ -34,10 +34,10 @@ def test_data_integrity(loader, sample_dates):
     """Test data integrity constraints."""
     start_date, end_date = sample_dates
     
-    data = loader.load_data(
+    data = loader.get_minute_data(
+        interval=5,
         start_date=start_date.strftime('%Y-%m-%d'),
-        end_date=end_date.strftime('%Y-%m-%d'),
-        timeframe='5T'
+        end_date=end_date.strftime('%Y-%m-%d')
     )
     
     # Price integrity

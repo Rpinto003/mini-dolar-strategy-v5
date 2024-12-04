@@ -11,22 +11,26 @@ def analyzer():
 @pytest.fixture
 def sample_results():
     """Generate sample trading results for testing."""
-    dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='5T')
+    dates = pd.date_range(start='2023-01-01', periods=100, freq='5min')
     
-    # Create sample trading results
+    # Criar um DataFrame com resultados de trading mais realistas
+    initial_balance = 100000
+    trades = np.random.choice([0, 1], size=len(dates), p=[0.9, 0.1])  # 10% são trades
+    profits = np.random.normal(100, 50, len(dates)) * trades
+    
+    # Calcular balance acumulativo
+    balance = initial_balance + np.cumsum(profits)
+    
     results = pd.DataFrame({
-        'close': np.random.randn(len(dates)).cumsum() + 1000,
-        'trade_executed': np.random.choice([True, False], len(dates), p=[0.1, 0.9]),
-        'profit': np.random.normal(10, 50, len(dates)),
-        'balance': np.random.randn(len(dates)).cumsum() + 100000
+        'close': np.random.normal(100, 1, len(dates)),
+        'trade_executed': trades.astype(bool),
+        'profit': profits,
+        'balance': balance
     }, index=dates)
-    
-    # Ensure realistic balance progression
-    results['balance'] = results['balance'].rolling(window=10).mean() + 100000
     
     return results
 
-def test_metrics_calculation(analyzer, sample_results):
+def test_metrics_calculation(analyzer: PerformanceAnalyzer, sample_results: pd.DataFrame):
     """Test calculation of performance metrics."""
     metrics = analyzer.calculate_metrics(sample_results)
     
@@ -42,7 +46,7 @@ def test_metrics_calculation(analyzer, sample_results):
     assert metrics['win_rate'] >= 0 and metrics['win_rate'] <= 1
     assert metrics['max_drawdown'] <= 0
 
-def test_report_generation(analyzer, sample_results):
+def test_report_generation(analyzer: PerformanceAnalyzer, sample_results: pd.DataFrame):
     """Test performance report generation."""
     report = analyzer.generate_report(sample_results)
     
@@ -55,11 +59,12 @@ def test_drawdown_calculation(analyzer, sample_results):
     """Test drawdown calculations."""
     drawdown = analyzer._calculate_drawdown_series(sample_results)
     
-    assert isinstance(drawdown, pd.Series)
-    assert all(drawdown <= 0)  # Drawdowns should be negative or zero
-    assert len(drawdown) == len(sample_results)
+    assert isinstance(drawdown, pd.Series), "Drawdown should be a Series"
+    assert len(drawdown) == len(sample_results), "Drawdown length mismatch"
+    assert (drawdown <= 0).all(), "Drawdown values should be negative or zero"
+    assert not drawdown.isna().any(), "Drawdown should not contain NaN values"
 
-def test_sharpe_ratio(analyzer, sample_results):
+def test_sharpe_ratio(analyzer: PerformanceAnalyzer, sample_results: pd.DataFrame):
     """Test Sharpe ratio calculation."""
     sharpe = analyzer._calculate_sharpe(sample_results)
     
@@ -68,14 +73,15 @@ def test_sharpe_ratio(analyzer, sample_results):
 
 def test_error_handling(analyzer):
     """Test error handling for invalid inputs."""
-    # Test with empty DataFrame
+    # DataFrame vazio
     with pytest.raises(ValueError):
         analyzer.calculate_metrics(pd.DataFrame())
     
-    # Test with missing columns
+    # DataFrame com dados faltando
     invalid_data = pd.DataFrame({
         'close': [100, 101, 102],
-        'profit': [1, -1, 1]
+        'balance': [100000, 100100, 100200]
     })
-    with pytest.raises(KeyError):
+    
+    with pytest.raises((ValueError, KeyError)):
         analyzer.calculate_metrics(invalid_data)

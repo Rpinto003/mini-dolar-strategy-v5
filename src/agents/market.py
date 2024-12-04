@@ -20,6 +20,7 @@ class MarketAgent:
             stop_loss: Stop loss in points
             take_profit: Take profit in points
         """
+        self.initial_balance = initial_balance #add RLCP [GPT]
         self.balance = initial_balance
         self.max_position = max_position
         self.stop_loss = stop_loss
@@ -89,7 +90,7 @@ class MarketAgent:
         df.loc[df.index[index], 'trade_executed'] = True
         df.loc[df.index[index], 'profit'] = profit
         self.balance += profit
-        df.loc[df.index[index], 'balance'] = self.balance
+        df.loc[df.index[index], 'balance'] = float(self.balance)
         
         self.position = 0
         self.entry_price = 0

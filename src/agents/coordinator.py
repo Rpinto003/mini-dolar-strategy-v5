@@ -10,10 +10,11 @@ class StrategyCoordinator:
     """Coordinates the trading strategy execution."""
     
     def __init__(self,
-                 initial_balance: float = 100000,
-                 max_position: int = 1,
-                 stop_loss: float = 100,
-                 take_profit: float = 200):
+                initial_balance: float = 100000,
+                max_position: int = 1,
+                stop_loss: float = 100,
+                take_profit: float = 200,
+                db_path: Optional[str] = None):
         """
         Initialize the strategy coordinator.
         
@@ -22,8 +23,12 @@ class StrategyCoordinator:
             max_position: Maximum number of contracts per position
             stop_loss: Stop loss in points
             take_profit: Take profit in points
+            db_path: Optional path to the database file
         """
-        self.data_loader = MarketDataLoader()
+        if db_path is None:
+            raise ValueError("Database path must be provided.")
+        
+        self.data_loader = MarketDataLoader(db_path)
         self.strategy = TechnicalStrategy()
         self.market = MarketAgent(
             initial_balance=initial_balance,
@@ -55,23 +60,23 @@ class StrategyCoordinator:
     def backtest(self,
                 start_date: str,
                 end_date: str,
-                timeframe: str = "5T") -> pd.DataFrame:
+                interval: int = 5) -> pd.DataFrame:
         """
         Run strategy backtest.
         
         Args:
             start_date: Start date for backtest
             end_date: End date for backtest
-            timeframe: Data timeframe
+            interval: Data interval in minutes (default: 5)
             
         Returns:
             DataFrame with backtest results
         """
         # Load historical data
-        data = self.data_loader.load_data(
+        data = self.data_loader.get_minute_data(
+            interval=interval,
             start_date=start_date,
-            end_date=end_date,
-            timeframe=timeframe
+            end_date=end_date
         )
         
         # Process data and generate signals

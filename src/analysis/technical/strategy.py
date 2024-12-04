@@ -30,31 +30,55 @@ class TechnicalStrategy:
         Calculate technical indicators for the strategy.
         
         Args:
-            data: OHLCV DataFrame with market data
+            data: DataFrame with OHLCV data
             
         Returns:
             DataFrame with added technical indicators
         """
+        if data.empty:
+            raise ValueError("Data cannot be empty")
+            
+        required_columns = ['open', 'high', 'low', 'close', 'volume']
+        if not all(col in data.columns for col in required_columns):
+            raise KeyError(f"Data must contain columns: {required_columns}")
+            
         df = data.copy()
         
-        # Calculate RSI
-        df['rsi'] = talib.RSI(df['close'], timeperiod=self.rsi_period)
+        # Calcular RSI com tratamento de NaN
+        try:
+            delta = df['close'].diff()
+            gain = (delta.where(delta > 0, 0)).fillna(0)
+            loss = (-delta.where(delta < 0, 0)).fillna(0)
+            
+            avg_gain = gain.rolling(window=self.rsi_period).mean()
+            avg_loss = loss.rolling(window=self.rsi_period).mean()
+            
+            rs = avg_gain / avg_loss
+            df['rsi'] = 100 - (100 / (1 + rs))
+            df['rsi'] = df['rsi'].fillna(50)  # Preencher NaN iniciais com valor neutro
+        except Exception as e:
+            logger.error(f"Error calculating RSI: {str(e)}")
+            df['rsi'] = 50  # Valor neutro em caso de erro
         
-        # Calculate Moving Averages
-        df['ma_fast'] = talib.SMA(df['close'], timeperiod=self.ma_fast)
-        df['ma_slow'] = talib.SMA(df['close'], timeperiod=self.ma_slow)
+        # Moving Averages
+        df['ma_fast'] = df['close'].rolling(window=self.ma_fast).mean()
+        df['ma_slow'] = df['close'].rolling(window=self.ma_slow).mean()
         
-        # Calculate MACD
-        macd, signal, hist = talib.MACD(df['close'])
-        df['macd'] = macd
-        df['macd_signal'] = signal
-        df['macd_hist'] = hist
+        # MACD
+        exp1 = df['close'].ewm(span=12, adjust=False).mean()
+        exp2 = df['close'].ewm(span=26, adjust=False).mean()
+        df['macd'] = exp1 - exp2
+        df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
+        df['macd_hist'] = df['macd'] - df['macd_signal']
         
-        # Calculate Bollinger Bands
-        upper, middle, lower = talib.BBANDS(df['close'])
-        df['bb_upper'] = upper
-        df['bb_middle'] = middle
-        df['bb_lower'] = lower
+        # Bollinger Bands
+        df['bb_middle'] = df['close'].rolling(window=20).mean()
+        std = df['close'].rolling(window=20).std()
+        df['bb_upper'] = df['bb_middle'] + (std * 2)
+        df['bb_lower'] = df['bb_middle'] - (std * 2)
+        
+        # Preencher NaN com forward fill e depois backward fill
+        df = df.fillna(method='ffill').fillna(method='bfill')
         
         logger.info("Calculated technical indicators")
         return df

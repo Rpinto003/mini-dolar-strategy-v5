@@ -13,7 +13,7 @@ def test_dates():
 @pytest.fixture(scope="session")
 def sample_ohlcv_data():
     """Generate sample OHLCV data that can be used across all test modules."""
-    dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='5T')
+    dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='5min')
     data = pd.DataFrame({
         'open': np.random.randn(len(dates)).cumsum() + 1000,
         'high': np.random.randn(len(dates)).cumsum() + 1000,

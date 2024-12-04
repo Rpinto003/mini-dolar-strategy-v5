@@ -23,6 +23,13 @@ class PerformanceAnalyzer:
         Returns:
             Dictionary of performance metrics
         """
+        if results.empty:
+            raise ValueError("Results DataFrame cannot be empty")
+            
+        required_columns = ['trade_executed', 'profit', 'balance']
+        if not all(col in results.columns for col in required_columns):
+            raise KeyError(f"Results must contain columns: {required_columns}")
+        
         trades = results[results['trade_executed']]
         profits = trades['profit']
         
@@ -32,15 +39,14 @@ class PerformanceAnalyzer:
             'losing_trades': len(profits[profits < 0]),
             'win_rate': len(profits[profits > 0]) / len(profits) if len(profits) > 0 else 0,
             'total_profit': profits.sum(),
-            'average_profit': profits.mean(),
-            'profit_std': profits.std(),
-            'max_profit': profits.max(),
-            'max_loss': profits.min(),
+            'average_profit': profits.mean() if len(profits) > 0 else 0,
+            'profit_std': profits.std() if len(profits) > 0 else 0,
+            'max_profit': profits.max() if len(profits) > 0 else 0,
+            'max_loss': profits.min() if len(profits) > 0 else 0,
             'sharpe_ratio': self._calculate_sharpe(results),
             'max_drawdown': self._calculate_max_drawdown(results)
         }
         
-        logger.info("Calculated performance metrics")
         return metrics
     
     def generate_report(self,

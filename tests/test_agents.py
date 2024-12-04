@@ -27,7 +27,7 @@ def market_agent():
 @pytest.fixture
 def sample_data():
     """Generate sample market data with signals."""
-    dates = pd.date_range(start='2023-01-01', end='2023-01-31', freq='5T')
+    dates = pd.date_range(start='2023-01-01', end='2023-01-31', freq='5min')
     data = pd.DataFrame({
         'open': np.random.randn(len(dates)).cumsum() + 1000,
         'high': np.random.randn(len(dates)).cumsum() + 1000,
@@ -82,7 +82,8 @@ def test_backtest_functionality(coordinator):
     
     results = coordinator.backtest(
         start_date=start_date.strftime('%Y-%m-%d'),
-        end_date=end_date.strftime('%Y-%m-%d')
+        end_date=end_date.strftime('%Y-%m-%d'),
+        interval=5  # 5-minute data
     )
     
     assert isinstance(results, pd.DataFrame)
