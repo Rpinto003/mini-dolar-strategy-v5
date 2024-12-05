@@ -35,7 +35,7 @@ class StrategyCoordinator:
             max_position=max_position,
             stop_loss=stop_loss,
             take_profit=take_profit,
-            atr_multiplier=2.0  # Valor base para ATR dinâmico
+            atr_multiplier=2.0
         )
       
         logger.info("Initialized StrategyCoordinator with parameters:", self.strategy_params)
@@ -51,13 +51,13 @@ class StrategyCoordinator:
             
             df = data.copy()
             
-            # Treinar modelo ML com dados históricos
+            # Train ML model with historical data
             self.strategy.train_model(df)
             
-            # Gerar sinais com a estratégia aprimorada
+            # Generate signals with enhanced strategy
             df = self.strategy.generate_signals(df)
             
-            # Adicionar gestão de risco dinâmica
+            # Add dynamic risk management
             df = self.strategy.add_risk_management(df)
             
             return df
@@ -82,11 +82,11 @@ class StrategyCoordinator:
                 
             logger.info(f"Loaded {len(data)} candles for backtest")
             
-            print("Columns before processing:", data.columns.tolist())
             results = self.process_market_data(data)
-            print("Columns after processing:", results.columns.tolist())
+            logger.info("Processed market data with technical indicators and ML signals")
             
             results = self.market.execute_trades(results)
+            logger.info("Completed trade execution simulation")
             
             logger.info(f"Completed backtest from {start_date} to {end_date}")
             return results

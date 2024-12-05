@@ -1,31 +1,31 @@
-# Data Processing
-pandas>=1.5.0
-numpy>=1.21.0
-python-dateutil>=2.8.2
+# Core dependencies
+pandas>=1.3.0
+numpy>=1.19.0
+scikit-learn>=0.24.0
+ta-lib>=0.4.19
+loguru>=0.5.3
 
-# Machine Learning
-scikit-learn>=1.0.0
-tensorflow>=2.8.0
+# Data handling
+pyodbc>=4.0.30
+sqlite3>=3.35.0
 
-# Technical Analysis
-ta-lib>=0.4.0
+# Machine learning
+torch>=1.9.0
+tensorflow>=2.6.0
+
+# Technical analysis
+ta>=0.7.0
+
+# Testing
+pytest>=6.2.5
+pytest-cov>=2.12.0
 
 # Development
-pytest>=7.0.0
-black>=22.0.0
-flake8>=4.0.0
+black>=21.7b0
+flake8>=3.9.0
+mypy>=0.910
 
-# Logging
-loguru>=0.7.0
-
-# Database
-SQLAlchemy>=1.4.0
-
-# Jupyter
+# Notebooks
 jupyter>=1.0.0
-ipykernel>=6.0.0
-matplotlib>=3.5.0
+matplotlib>=3.4.0
 seaborn>=0.11.0
-
-# Time handling
-pytz>=2023.3
