@@ -2,109 +2,79 @@
 
 Advanced trading strategy for Mini Dollar futures (WDO) combining technical analysis, machine learning, and automated execution.
 
-## Strategy Overview
+## Implementation Steps
 
-The strategy combines multiple analysis approaches:
-
-### Market Analysis
+### 1. Market Analysis
 - Market regime detection using ADX and Bollinger Bands
 - Volume profile analysis with dynamic price bins
-- VWAP and cumulative delta calculations
-- Enhanced orderflow indicators
+- Advanced orderflow indicators:
+  - VWAP calculation
+  - Cumulative delta
+  - Pressure ratios
 
-### Signal Generation
-- Random Forest model with optimized parameters
-- Feature engineering for price action patterns
-- Risk-adjusted ML labels
-- Multi-timeframe analysis
+### 2. Machine Learning
+- Random Forest model:
+  - 1000 estimators
+  - Max depth: 6
+  - Min samples split: 40
+  - Min samples leaf: 20
+- Feature engineering:
+  - Technical indicators
+  - Momentum measures
+  - Volume analysis
+  - Market regime features
 
-### Risk Management
+### 3. Risk Management
 - Dynamic position sizing based on:
-  - Market volatility
-  - Account balance
-  - Signal strength
-  - Market regime
-- Multiple take-profit levels
-- Adaptive stop-loss with breakeven rules
-- Maximum drawdown controls
+  - Volatility adjustment
+  - Market regime factor
+  - Signal strength scaling
+  - Risk-based limits
+- Multi-level take-profits:
+  - TP1: 2.0 × ATR
+  - TP2: 3.0 × ATR
+  - TP3: 4.0 × ATR
+- Adaptive stop-loss:
+  - Initial: 2.5 × ATR (trending)
+  - Initial: 1.8 × ATR (ranging)
+  - Breakeven adjustment
+
+### 4. Performance Analytics
+- Trade metrics:
+  - Win rate
+  - Profit factor
+  - Average win/loss
+- Risk metrics:
+  - Sharpe ratio
+  - Sortino ratio
+  - Maximum drawdown
+- Market analysis:
+  - Regime performance
+  - Session analysis
+  - Volume profile impact
 
 ## Project Structure
 
 ```
 src/
 ├── agents/            # Trading agents and coordination
-│   ├── coordinator.py # Strategy coordinator
-│   └── market.py     # Market execution agent
-├── analysis/         # Technical analysis
-│   └── technical/    # Trading strategies
-│       └── enhanced_strategy_v2.py  # Main strategy
-├── data/            # Data management
-│   ├── database/    # Market data storage
-│   └── loaders/     # Data loading utilities
-├── models/          # Machine learning
-│   └── ml/         # ML models and training
-└── reporting/       # Analytics
+│   ├── coordinator.py  # Strategy coordinator
+│   └── market.py      # Market execution
+├── analysis/          # Technical analysis
+│   └── technical/     # Trading strategies
+├── data/             # Data management
+│   ├── database/     # Market data storage
+│   └── loaders/      # Data loading
+├── models/           # Machine learning
+│   └── ml/          # ML models
+└── reporting/        # Analytics
     └── performance.py # Performance metrics
 ```
 
-## Key Features
+## Usage Example
 
-### Technical Analysis
-- Advanced market regime detection
-- Volume profile analysis
-- Dynamic support/resistance levels
-- Multi-timeframe momentum indicators
-
-### Machine Learning
-- Random Forest model with 1000 estimators
-- Feature importance analysis
-- Enhanced feature engineering
-- Risk-adjusted labeling
-
-### Risk Management
-- Volatility-based position sizing
-- Multi-level take-profit strategy
-- Dynamic stop-loss adjustment
-- Maximum drawdown control
-
-### Performance Analytics
-- Comprehensive metrics calculation
-- Risk-adjusted return analysis
-- Trade distribution analysis
-- Market regime performance tracking
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Rpinto003/mini-dolar-strategy-v4.git
-cd mini-dolar-strategy-v4
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Configure environment:
-```bash
-cp .env.example .env
-# Edit .env with your settings
-```
-
-## Usage
-
-### Configuration
-Set your trading parameters in `config.yaml`:
-- Initial balance
-- Risk limits
-- Trading hours
-- Take-profit levels
-
-### Backtesting
 ```python
-from src.agents.coordinator import StrategyCoordinator
-
+# Initialize strategy
 coordinator = StrategyCoordinator(
     initial_balance=100000,
     max_position=1,
@@ -112,44 +82,51 @@ coordinator = StrategyCoordinator(
     take_profit=200
 )
 
+# Run backtest
 results = coordinator.backtest(
     start_date='2024-01-01',
     end_date='2024-12-01',
     interval=5
 )
-```
 
-### Performance Analysis
-```python
-from src.reporting.performance import PerformanceAnalyzer
-
+# Analyze performance
 analyzer = PerformanceAnalyzer()
 metrics = analyzer.calculate_metrics(results)
 report = analyzer.generate_report(results)
 ```
 
-## Testing
+## Installation
 
-Run the test suite:
+1. Clone repository:
 ```bash
-python -m pytest tests/
+git clone https://github.com/Rpinto003/mini-dolar-strategy-v4.git
+cd mini-dolar-strategy-v4
 ```
 
-## Performance Monitoring
+2. Install requirements:
+```bash
+pip install -r requirements.txt
+```
 
-Monitor key metrics:
-- Win rate
-- Risk-adjusted returns
-- Maximum drawdown
-- Sharpe/Sortino ratios
+3. Configure settings:
+```bash
+cp .env.example .env
+# Edit .env with your parameters
+```
 
 ## Documentation
 
-See `docs/` for detailed documentation:
+Detailed documentation in `docs/`:
 - Strategy guide
 - API reference
 - Configuration options
 - Performance metrics
+
+## Testing
+
+```bash
+python -m pytest tests/
+```
 
 ## License
 
