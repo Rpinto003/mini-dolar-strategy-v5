@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 import pandas as pd
 from datetime import datetime
 from loguru import logger
@@ -10,11 +10,12 @@ class StrategyCoordinator:
     """Coordinates the trading strategy execution."""
     
     def __init__(self,
-                initial_balance: float = 100000,
-                max_position: int = 1,
-                stop_loss: float = 100,
-                take_profit: float = 200,
-                db_path: Optional[str] = None):
+                 initial_balance: float = 100000,
+                 max_position: int = 1,
+                 stop_loss: float = 100,
+                 take_profit: float = 200,
+                 db_path: Optional[str] = None,
+                 strategy_params: Optional[Dict] = None):
         """
         Initialize the strategy coordinator.
         
@@ -29,64 +30,81 @@ class StrategyCoordinator:
             raise ValueError("Database path must be provided.")
         
         self.data_loader = MarketDataLoader(db_path)
-        self.strategy = TechnicalStrategy()
+        self.strategy_params = strategy_params or {}
+        self.strategy = TechnicalStrategy(**self.strategy_params)
         self.market = MarketAgent(
             initial_balance=initial_balance,
             max_position=max_position,
             stop_loss=stop_loss,
-            take_profit=take_profit
+            take_profit=take_profit,
+            atr_multiplier=self.strategy.atr_multiplier
         )
-        
-        logger.info("Initialized StrategyCoordinator")
+      
+        logger.info("Initialized StrategyCoordinator with parameters:", self.strategy_params)
     
     def process_market_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Process market data and generate trading signals.
-        
-        Args:
-            data: Raw market data DataFrame
+        """Process market data and generate trading signals."""
+        try:
+            # Verificar dados necessários
+            required_columns = ['open', 'high', 'low', 'close', 'volume']
+            missing_columns = [col for col in required_columns if col not in data.columns]
             
-        Returns:
-            DataFrame with indicators and signals
-        """
-        # Calculate technical indicators
-        data = self.strategy.calculate_indicators(data)
-        
-        # Generate trading signals
-        data = self.strategy.generate_signals(data)
-        
-        return data
+            if missing_columns:
+                logger.error(f"Missing columns in data: {missing_columns}")
+                raise ValueError(f"Required columns missing: {missing_columns}")
+            
+            # Criar cópia dos dados para evitar modificações indesejadas
+            df = data.copy()
+            
+            # Calcular indicadores
+            df = self.strategy.calculate_indicators(df)
+            
+            # Gerar sinais
+            df = self.strategy.generate_signals(df)
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error processing market data: {str(e)}")
+            raise
     
     def backtest(self,
                 start_date: str,
                 end_date: str,
                 interval: int = 5) -> pd.DataFrame:
-        """
-        Run strategy backtest.
-        
-        Args:
-            start_date: Start date for backtest
-            end_date: End date for backtest
-            interval: Data interval in minutes (default: 5)
+        """Run strategy backtest."""
+        try:
+            # Load historical data
+            data = self.data_loader.get_minute_data(
+                interval=interval,
+                start_date=start_date,
+                end_date=end_date
+            )
             
-        Returns:
-            DataFrame with backtest results
-        """
-        # Load historical data
-        data = self.data_loader.get_minute_data(
-            interval=interval,
-            start_date=start_date,
-            end_date=end_date
-        )
-        
-        # Process data and generate signals
-        data = self.process_market_data(data)
-        
-        # Execute trades
-        results = self.market.execute_trades(data)
-        
-        logger.info(f"Completed backtest from {start_date} to {end_date}")
-        return results
+            # Verificar se os dados foram carregados corretamente
+            if data.empty:
+                raise ValueError("No data loaded for the specified period")
+                
+            logger.info(f"Loaded {len(data)} candles for backtest")
+            
+            # Verificar colunas antes do processamento
+            print("Columns before processing:", data.columns.tolist())
+            
+            # Process data and generate signals
+            results = self.process_market_data(data)
+            
+            # Verificar colunas após o processamento
+            print("Columns after processing:", results.columns.tolist())
+            
+            # Execute trades
+            results = self.market.execute_trades(results)
+            
+            logger.info(f"Completed backtest from {start_date} to {end_date}")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error during backtest: {str(e)}")
+            raise
     
     def get_performance_metrics(self, results: pd.DataFrame) -> dict:
         """

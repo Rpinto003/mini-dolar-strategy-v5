@@ -10,7 +10,8 @@ class MarketAgent:
                  initial_balance: float = 100000,
                  max_position: int = 1,
                  stop_loss: float = 100,
-                 take_profit: float = 200):
+                 take_profit: float = 200,
+                 atr_multiplier: float = 2.0):
         """
         Initialize the market agent.
         
@@ -19,12 +20,14 @@ class MarketAgent:
             max_position: Maximum position size
             stop_loss: Stop loss in points
             take_profit: Take profit in points
+            atr_multiplier: Multiplier for ATR to calculate stops
         """
-        self.initial_balance = initial_balance #add RLCP [GPT]
+        self.initial_balance = initial_balance
         self.balance = initial_balance
         self.max_position = max_position
         self.stop_loss = stop_loss
         self.take_profit = take_profit
+        self.atr_multiplier = atr_multiplier
         self.position = 0
         self.entry_price = 0
         
@@ -32,33 +35,77 @@ class MarketAgent:
     
     def execute_trades(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Execute trades based on signals.
-        
-        Args:
-            data: DataFrame with trading signals
-            
-        Returns:
-            DataFrame with trade executions
+        Execute trades based on signals and manage positions with trailing stops and partial take profits.
         """
         df = data.copy()
+        position = 0
+        entry_price = 0.0
+        total_profit = 0.0
+        balance = self.initial_balance  # Inicializar o saldo com o saldo inicial
+        current_tp_index = 0  # Mover para fora do loop para manter o estado entre as iterações
+
+        # Inicializar colunas
         df['trade_executed'] = False
         df['profit'] = 0.0
-        df['balance'] = self.initial_balance
-        
-        for i in range(1, len(df)):
-            current_signal = df.iloc[i]['final_signal']
-            current_price = df.iloc[i]['close']
-            
-            # Check for stop loss or take profit
-            if self.position != 0:
-                profit = self._calculate_profit(current_price)
-                if abs(profit) >= self.take_profit or abs(profit) >= self.stop_loss:
-                    self._close_position(df, i, current_price)
-            
-            # Execute new trades based on signals
-            if current_signal != 0 and self.position == 0:
-                self._open_position(df, i, current_price, current_signal)
-        
+        df['balance'] = balance
+        df['position'] = 0
+
+        for index, row in df.iterrows():
+            signal = row['final_signal']
+            profit = 0.0  # Lucro da operação atual
+            trade_executed = False  # Indica se uma trade foi executada neste tick
+
+            # Abrir posição
+            if position == 0 and signal != 0:
+                position = signal * self.max_position
+                entry_price = row['close']
+                # Definir stop loss e take profit iniciais
+                stop_loss = entry_price - row['dynamic_stop_loss'] if position > 0 else entry_price + row['dynamic_stop_loss']
+                take_profit_levels = [row['take_profit_level1'], row['take_profit_level2'], row['take_profit_level3']]
+                current_tp_index = 0
+                # Inicializar trailing stop
+                trailing_stop = stop_loss
+                trade_executed = True
+                logger.info(f"Opened position at {entry_price}, position size: {position}")
+            elif position != 0:
+                # Atualizar trailing stop
+                new_trailing_stop = row['close'] - row['atr'] * self.atr_multiplier if position > 0 else row['close'] + row['atr'] * self.atr_multiplier
+                trailing_stop = max(trailing_stop, new_trailing_stop) if position > 0 else min(trailing_stop, new_trailing_stop)
+                
+                # Verificar se atingiu o próximo nível de take profit
+                if current_tp_index < len(take_profit_levels) and (
+                    (position > 0 and row['close'] >= take_profit_levels[current_tp_index]) or
+                    (position < 0 and row['close'] <= take_profit_levels[current_tp_index])
+                ):
+                    # Realizar parcialização
+                    partial_position = self.max_position / len(take_profit_levels)
+                    # Calcular lucro parcial
+                    partial_profit = (take_profit_levels[current_tp_index] - entry_price) * partial_position * np.sign(position)
+                    total_profit += partial_profit
+                    balance += partial_profit
+                    profit += partial_profit
+                    position -= partial_position * np.sign(position)
+                    current_tp_index += 1
+                    trade_executed = True
+                    logger.info(f"Partial profit taken at {take_profit_levels[current_tp_index - 1]}, profit: {partial_profit}, remaining position: {position}")
+                # Verificar stop loss
+                elif (position > 0 and row['close'] <= trailing_stop) or (position < 0 and row['close'] >= trailing_stop):
+                    # Fechar posição
+                    profit = (row['close'] - entry_price) * position
+                    total_profit += profit
+                    balance += profit
+                    position = 0
+                    trade_executed = True
+                    logger.info(f"Position closed at {row['close']}, profit: {profit}, total profit: {total_profit}")
+            else:
+                trade_executed = False
+
+            # Atualizar DataFrame
+            df.at[index, 'trade_executed'] = trade_executed
+            df.at[index, 'position'] = position
+            df.at[index, 'profit'] = profit
+            df.at[index, 'balance'] = balance
+
         return df
     
     def _calculate_profit(self, current_price: float) -> float:
