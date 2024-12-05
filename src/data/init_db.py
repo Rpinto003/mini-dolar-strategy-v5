@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import numpy as np
 from loguru import logger
 from pathlib import Path
 
@@ -27,7 +28,7 @@ def init_database():
 def load_sample_data():
     """Load sample data for testing"""
     # Sample data for last 6 months of 5-minute candles
-    dates = pd.date_range(start='2024-06-01', end='2024-12-05', freq='5T')
+    dates = pd.date_range(start='2024-06-01', end='2024-12-05', freq='5min')
     n = len(dates)
     
     data = pd.DataFrame({
@@ -45,6 +46,5 @@ def load_sample_data():
     conn.close()
 
 if __name__ == '__main__':
-    import numpy as np
     logger.add("logs/init_db_{time}.log")
     load_sample_data()
