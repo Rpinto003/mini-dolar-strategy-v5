@@ -169,7 +169,7 @@ class TechnicalStrategy:
         # Stops dinâmicos
         df = self.calculate_atr_based_stops(df)
         
-        return df.fillna(method='ffill').fillna(method='bfill')
+        return df.ffill().bfill()
 
     def calculate_signal_score(self, row) -> float:
         """Calcula score para sinais de compra"""
@@ -252,8 +252,8 @@ class TechnicalStrategy:
             df['signal'] = df['signal'] * (df['signal'] == higher_tf_trend).astype(int)
         
         # Remover sinais consecutivos duplicados
-        df['final_signal'] = df['signal'].diff().fillna(df['signal'])
-        df['final_signal'] = df['final_signal'].replace(to_replace=0, method='ffill')
+        df['final_signal'] = df['signal'].diff().ffill()
+        df['final_signal'] = df['final_signal'].replace(0, np.nan).ffill().fillna(0)
         df['final_signal'] = df['final_signal'].apply(lambda x: x if x in [1, -1] else 0)
         
         # Definir stops

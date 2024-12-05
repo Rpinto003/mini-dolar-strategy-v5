@@ -83,7 +83,7 @@ class MarketDataLoader:
             return df
             
         # Resampling to desired interval
-        rule = f"{interval}T"
+        rule = f'{interval}min'  # Usar 'min' em vez de 'T'
         resampled_data = pd.DataFrame()
         resampled_data['open'] = df['open'].resample(rule).first()
         resampled_data['high'] = df['high'].resample(rule).max()
