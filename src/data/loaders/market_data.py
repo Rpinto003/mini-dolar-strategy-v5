@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlite3
 from datetime import datetime, timedelta
+from loguru import logger
 import logging
 import os
 from pathlib import Path
@@ -73,25 +74,33 @@ class MarketDataLoader:
             self.logger.error(f"Error loading data: {str(e)}")
             return pd.DataFrame()
 
-    def get_minute_data(self, 
-                       interval: int = 5,
-                       start_date: str = None,
-                       end_date: str = None) -> pd.DataFrame:
-        """Return data in specific minute intervals."""
-        df = self.load_data(start_date, end_date)
-        if df.empty:
+    def get_minute_data(self, interval, start_date, end_date):
+        logger.info(f"Attempting to load data from {self.db_path}")
+        
+        query = f"""
+        SELECT * FROM candles 
+        WHERE time >= '{start_date}' 
+        AND time <= '{end_date}' 
+        ORDER BY time ASC
+        """
+        
+        logger.info(f"Executing query: {query}")
+        
+        try:
+            conn = sqlite3.connect(self.db_path)
+            df = pd.read_sql(query, conn, parse_dates=['time'])
+            df.set_index('time', inplace=True)
+            # Renomear real_volume para volume
+            if 'real_volume' in df.columns:
+                df = df.rename(columns={'real_volume': 'volume'})
+            conn.close()
+            
+            logger.info(f"Data loaded: {len(df)} records")
             return df
             
-        # Resampling to desired interval
-        rule = f'{interval}min'  # Usar 'min' em vez de 'T'
-        resampled_data = pd.DataFrame()
-        resampled_data['open'] = df['open'].resample(rule).first()
-        resampled_data['high'] = df['high'].resample(rule).max()
-        resampled_data['low'] = df['low'].resample(rule).min()
-        resampled_data['close'] = df['close'].resample(rule).last()
-        resampled_data['volume'] = df['real_volume'].resample(rule).sum()
-        
-        return resampled_data.dropna()
+        except Exception as e:
+            logger.error(f"Error loading data: {str(e)}")
+            raise
         
     def get_latest_data(self, 
                        lookback: int = 100) -> pd.DataFrame:

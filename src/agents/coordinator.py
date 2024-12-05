@@ -3,12 +3,10 @@ import pandas as pd
 from datetime import datetime
 from loguru import logger
 from ..data.loaders.market_data import MarketDataLoader
-from ..analysis.technical.strategy import TechnicalStrategy
+from ..analysis.technical.enhanced_strategy_v2 import EnhancedTechnicalStrategyV2
 from .market import MarketAgent
 
 class StrategyCoordinator:
-    """Coordinates the trading strategy execution."""
-    
     def __init__(self,
                  initial_balance: float = 100000,
                  max_position: int = 1,
@@ -16,36 +14,34 @@ class StrategyCoordinator:
                  take_profit: float = 200,
                  db_path: Optional[str] = None,
                  strategy_params: Optional[Dict] = None):
-        """
-        Initialize the strategy coordinator.
         
-        Args:
-            initial_balance: Starting balance for trading
-            max_position: Maximum number of contracts per position
-            stop_loss: Stop loss in points
-            take_profit: Take profit in points
-            db_path: Optional path to the database file
-        """
         if db_path is None:
             raise ValueError("Database path must be provided.")
         
         self.data_loader = MarketDataLoader(db_path)
-        self.strategy_params = strategy_params or {}
-        self.strategy = TechnicalStrategy(**self.strategy_params)
+        self.strategy_params = strategy_params or {
+            'session_times': {
+                'morning_start': '09:00',
+                'morning_end': '11:00',
+                'afternoon_start': '14:00',
+                'afternoon_end': '16:00'
+            },
+            'gap_threshold': 0.2
+        }
+        
+        self.strategy = EnhancedTechnicalStrategyV2(**self.strategy_params)
         self.market = MarketAgent(
             initial_balance=initial_balance,
             max_position=max_position,
             stop_loss=stop_loss,
             take_profit=take_profit,
-            atr_multiplier=self.strategy.atr_multiplier
+            atr_multiplier=2.0  # Valor base para ATR dinâmico
         )
       
         logger.info("Initialized StrategyCoordinator with parameters:", self.strategy_params)
     
     def process_market_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Process market data and generate trading signals."""
         try:
-            # Verificar dados necessários
             required_columns = ['open', 'high', 'low', 'close', 'volume']
             missing_columns = [col for col in required_columns if col not in data.columns]
             
@@ -53,14 +49,16 @@ class StrategyCoordinator:
                 logger.error(f"Missing columns in data: {missing_columns}")
                 raise ValueError(f"Required columns missing: {missing_columns}")
             
-            # Criar cópia dos dados para evitar modificações indesejadas
             df = data.copy()
             
-            # Calcular indicadores
-            df = self.strategy.calculate_indicators(df)
+            # Treinar modelo ML com dados históricos
+            self.strategy.train_model(df)
             
-            # Gerar sinais
+            # Gerar sinais com a estratégia aprimorada
             df = self.strategy.generate_signals(df)
+            
+            # Adicionar gestão de risco dinâmica
+            df = self.strategy.add_risk_management(df)
             
             return df
             
@@ -72,31 +70,22 @@ class StrategyCoordinator:
                 start_date: str,
                 end_date: str,
                 interval: int = 5) -> pd.DataFrame:
-        """Run strategy backtest."""
         try:
-            # Load historical data
             data = self.data_loader.get_minute_data(
                 interval=interval,
                 start_date=start_date,
                 end_date=end_date
             )
             
-            # Verificar se os dados foram carregados corretamente
             if data.empty:
                 raise ValueError("No data loaded for the specified period")
                 
             logger.info(f"Loaded {len(data)} candles for backtest")
             
-            # Verificar colunas antes do processamento
             print("Columns before processing:", data.columns.tolist())
-            
-            # Process data and generate signals
             results = self.process_market_data(data)
-            
-            # Verificar colunas após o processamento
             print("Columns after processing:", results.columns.tolist())
             
-            # Execute trades
             results = self.market.execute_trades(results)
             
             logger.info(f"Completed backtest from {start_date} to {end_date}")
@@ -107,15 +96,6 @@ class StrategyCoordinator:
             raise
     
     def get_performance_metrics(self, results: pd.DataFrame) -> dict:
-        """
-        Calculate strategy performance metrics.
-        
-        Args:
-            results: DataFrame with backtest results
-            
-        Returns:
-            Dictionary with performance metrics
-        """
         metrics = {
             'total_trades': len(results[results['trade_executed']]),
             'win_rate': (results['profit'] > 0).mean(),
