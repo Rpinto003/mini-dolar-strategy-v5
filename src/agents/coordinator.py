@@ -46,18 +46,14 @@ class StrategyCoordinator:
             missing_columns = [col for col in required_columns if col not in data.columns]
             
             if missing_columns:
-                logger.error(f"Missing columns in data: {missing_columns}")
                 raise ValueError(f"Required columns missing: {missing_columns}")
             
             df = data.copy()
             
-            # Train ML model with historical data
-            self.strategy.train_model(df)
-            
-            # Generate signals with enhanced strategy
+            # First generate signals - this adds regime detection
             df = self.strategy.generate_signals(df)
             
-            # Add dynamic risk management
+            # Then add risk management
             df = self.strategy.add_risk_management(df)
             
             return df

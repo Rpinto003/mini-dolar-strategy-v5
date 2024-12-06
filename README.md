@@ -84,8 +84,8 @@ coordinator = StrategyCoordinator(
 
 # Run backtest
 results = coordinator.backtest(
-    start_date='2024-01-01',
-    end_date='2024-12-01',
+    start_date='2024-10-01',
+    end_date='2024-11-01',
     interval=5
 )
 

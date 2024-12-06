@@ -1,0 +1,10 @@
+2024-12-05 18:07:52.567 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 18:07:52.568 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 18:07:52.569 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 18:07:52.569 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 18:07:52.569629 to 2024-12-05 18:07:52.569629
+2024-12-05 18:07:52.570 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 18:07:52.738 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 51840 records
+2024-12-05 18:07:52.745 | INFO     | src.agents.coordinator:backtest:83 - Loaded 51840 candles for backtest
+2024-12-05 18:08:53.160 | INFO     | src.agents.coordinator:backtest:86 - Processed market data with technical indicators and ML signals
+2024-12-05 18:08:53.169 | ERROR    | src.agents.coordinator:backtest:95 - Error during backtest: 'regime'
+2024-12-05 18:08:53.169 | ERROR    | __main__:main:63 - Error executing strategy: 'regime'

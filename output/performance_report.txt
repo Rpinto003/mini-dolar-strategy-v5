@@ -1,16 +1,40 @@
-Trading Strategy Performance Report
-Generated on: 2024-12-04 10:44:14
+Performance Report
+===================
 
-Performance Metrics:
-Total Trades: 28
-Win Rate: 28.57%
-Total Profit: 198.15
-Average Profit per Trade: 7.08
-Maximum Drawdown: -0.40%
-Sharpe Ratio: -11.77
+Total Trades: 918
+Win Rate: 0.20%
+Profit Factor: 0.11
+Total Return: -0.17%
 
-Trade Statistics:
-Winning Trades: 8
-Losing Trades: 6
-Best Trade: 110.44
-Worst Trade: -121.24
+Trade Statistics
+----------------
+Average Win: $0.20
+Average Loss: $0.53
+Largest Win: $0.67
+Largest Loss: $-3.17
+Win/Loss Ratio: 0.38
+
+Risk Metrics
+------------
+Maximum Drawdown: -inf%
+Recovery Factor: 0.00
+Sharpe Ratio: -155.48
+Sortino Ratio: -100.45
+Calmar Ratio: -0.00
+
+Trade Analysis
+-------------
+Best Market Regime: trending
+Best Trading Hour: 09:00
+
+Trade Distribution
+-----------------
+
+Hourly Trade Distribution:
+regime  trending  All
+row_0                
+9            298  298
+10           172  172
+14           288  288
+15           160  160
+All          918  918

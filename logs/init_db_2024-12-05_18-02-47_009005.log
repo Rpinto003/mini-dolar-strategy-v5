@@ -1,0 +1,2 @@
+2024-12-05 18:02:47.050 | INFO     | __main__:init_database:24 - Initialized database at src\data\database\candles.db
+2024-12-05 18:02:47.109 | INFO     | __main__:load_sample_data:44 - Loaded 9793 sample candles

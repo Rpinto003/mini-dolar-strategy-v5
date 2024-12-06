@@ -1,0 +1,10 @@
+2024-12-05 18:25:35.076 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 18:25:35.077 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 18:25:35.078 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 18:25:35.079 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 18:25:35.079324 to 2024-12-05 18:25:35.079324
+2024-12-05 18:25:35.080 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 18:25:35.244 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 51840 records
+2024-12-05 18:25:35.251 | INFO     | src.agents.coordinator:backtest:79 - Loaded 51840 candles for backtest
+2024-12-05 18:26:01.539 | INFO     | src.agents.coordinator:backtest:82 - Processed market data with technical indicators and ML signals
+2024-12-05 18:26:01.699 | ERROR    | src.agents.coordinator:backtest:91 - Error during backtest: 'take_profit_1'
+2024-12-05 18:26:01.700 | ERROR    | __main__:main:63 - Error executing strategy: 'take_profit_1'

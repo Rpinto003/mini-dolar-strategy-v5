@@ -1,0 +1,11 @@
+2024-12-05 19:02:56.607 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 19:02:56.608 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 19:02:56.608 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 19:02:56.609 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 19:02:56.609315 to 2024-12-05 19:02:56.609315
+2024-12-05 19:02:56.609 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 19:02:56.780 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 51840 records
+2024-12-05 19:02:56.781 | INFO     | src.agents.coordinator:backtest:79 - Loaded 51840 candles for backtest
+2024-12-05 19:03:24.006 | INFO     | src.agents.coordinator:backtest:82 - Processed market data with technical indicators and ML signals
+2024-12-05 19:05:03.084 | INFO     | src.agents.coordinator:backtest:85 - Completed trade execution simulation
+2024-12-05 19:05:03.084 | INFO     | src.agents.coordinator:backtest:87 - Completed backtest from 2024-06-08 to 2024-12-05
+2024-12-05 19:05:03.214 | ERROR    | __main__:main:63 - Error executing strategy: Grouper and axis must be same length

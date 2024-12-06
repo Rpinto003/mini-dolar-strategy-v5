@@ -1,0 +1,8 @@
+2024-12-05 21:49:43.826 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 21:49:43.827 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 21:49:43.827 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 21:49:43.828 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 21:49:43.828777 to 2024-12-05 21:49:43.828777
+2024-12-05 21:49:43.828 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 21:49:43.992 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 51840 records
+2024-12-05 21:49:43.994 | INFO     | src.agents.coordinator:backtest:79 - Loaded 51840 candles for backtest
+2024-12-05 21:50:21.096 | INFO     | src.agents.coordinator:backtest:82 - Processed market data with technical indicators and ML signals

@@ -1,0 +1,12 @@
+2024-12-05 17:53:51.975 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 17:53:51.977 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 17:53:51.977 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 17:53:51.977751 to 2024-12-05 17:53:51.977751
+2024-12-05 17:53:51.977 | INFO     | src.data.loaders.market_data:get_minute_data:78 - Attempting to load data from C:\Users\rlcp0\AI Office\mini-dolar-strategy-v4\src\data\database\candles.db
+2024-12-05 17:53:51.978 | INFO     | src.data.loaders.market_data:get_minute_data:87 - Executing query: 
+        SELECT * FROM candles 
+        WHERE time >= '2024-06-08' 
+        AND time <= '2024-12-05' 
+        ORDER BY time ASC
+        
+2024-12-05 17:53:52.226 | INFO     | src.data.loaders.market_data:get_minute_data:98 - Data loaded: 68334 records
+2024-12-05 17:53:52.226 | INFO     | src.agents.coordinator:backtest:83 - Loaded 68334 candles for backtest

@@ -1,0 +1,10 @@
+2024-12-05 18:15:01.016 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 18:15:01.017 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 18:15:01.018 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 18:15:01.019 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 18:15:01.019926 to 2024-12-05 18:15:01.019926
+2024-12-05 18:15:01.019 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 18:15:01.193 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 51840 records
+2024-12-05 18:15:01.194 | INFO     | src.agents.coordinator:backtest:79 - Loaded 51840 candles for backtest
+2024-12-05 18:15:01.514 | ERROR    | src.agents.coordinator:process_market_data:62 - Error processing market data: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+2024-12-05 18:15:01.515 | ERROR    | src.agents.coordinator:backtest:91 - Error during backtest: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices
+2024-12-05 18:15:01.515 | ERROR    | __main__:main:63 - Error executing strategy: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices

@@ -1,0 +1,8 @@
+2024-12-05 18:03:20.779 | INFO     | __main__:main:14 - Starting Mini Dollar Strategy
+2024-12-05 18:03:20.780 | INFO     | src.data.loaders.market_data:__init__:8 - Using database: src/data/database/candles.db
+2024-12-05 18:03:20.780 | INFO     | src.agents.coordinator:__init__:41 - Initialized StrategyCoordinator with parameters:
+2024-12-05 18:03:20.780 | INFO     | __main__:main:31 - Running backtest from 2024-06-08 18:03:20.780706 to 2024-12-05 18:03:20.780706
+2024-12-05 18:03:20.780 | INFO     | src.data.loaders.market_data:get_minute_data:12 - Attempting to load data from src/data/database/candles.db
+2024-12-05 18:03:20.786 | INFO     | src.data.loaders.market_data:get_minute_data:31 - Data loaded: 0 records
+2024-12-05 18:03:20.787 | ERROR    | src.agents.coordinator:backtest:95 - Error during backtest: No data loaded for the specified period
+2024-12-05 18:03:20.787 | ERROR    | __main__:main:63 - Error executing strategy: No data loaded for the specified period

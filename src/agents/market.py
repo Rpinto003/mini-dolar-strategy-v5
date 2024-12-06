@@ -52,13 +52,13 @@ class MarketAgent:
                 if current_bar['final_signal'] == 1 and self.validate_long_entry(current_bar):
                     self.position = position_size
                     self.entry_price = current_bar['close']
-                    df.loc[df.index[i], 'position'] = position_size
+                    df.loc[df.index[i], 'position'] = int(position_size)
                     df.loc[df.index[i], 'trade_executed'] = True
                     
                 elif current_bar['final_signal'] == -1 and self.validate_short_entry(current_bar):
                     self.position = -position_size
                     self.entry_price = current_bar['close']
-                    df.loc[df.index[i], 'position'] = -position_size
+                    df.loc[df.index[i], 'position'] = int(-position_size)
                     df.loc[df.index[i], 'trade_executed'] = True
             
             # Update cumulative metrics
@@ -91,6 +91,7 @@ class MarketAgent:
             tp3_hit = bar['high'] >= bar['take_profit_3']
             
             if bar['high'] >= bar['breakeven_level']:
+                bar = bar.copy()
                 bar['stop_loss'] = max(self.entry_price, bar['stop_loss'])
             
             return stop_hit or tp1_hit or tp2_hit or tp3_hit
@@ -102,6 +103,7 @@ class MarketAgent:
             tp3_hit = bar['low'] <= bar['take_profit_3']
             
             if bar['low'] <= bar['breakeven_level']:
+                bar = bar.copy()
                 bar['stop_loss'] = min(self.entry_price, bar['stop_loss'])
                 
             return stop_hit or tp1_hit or tp2_hit or tp3_hit
@@ -109,21 +111,24 @@ class MarketAgent:
         return False
     
     def calculate_position_size(self, bar):
-        base_size = self.max_position * (self.balance / self.initial_balance)
+        base_size = self.max_position * 0.5
         
         # Adjust size based on volatility
-        volatility_factor = min(1.0, 1.0 / (bar['atr'] / bar['close'] * 100))
+        volatility_factor = min(0.8, 1.0 / (bar['atr'] / bar['close'] * 100))
         
         # Adjust size based on market regime
-        regime_factor = 1.0 if bar['regime'] == 'trending' else 0.7
+        regime_factor = 1.0 if bar['regime'] == 'trending' else 0.5
         
         # Adjust size based on signal strength
         signal_factor = min(1.0, abs(bar['ml_prob'] - 0.5) * 2)
         
         # Risk-based position sizing
         risk_factor = min(1.0, self.stop_loss / (bar['atr'] * self.atr_multiplier))
+
+        # Add time-based scaling
+        time_factor = 1.0 if bar['session_active'] else 0.5
         
-        return base_size * volatility_factor * regime_factor * signal_factor * risk_factor
+        return base_size * volatility_factor * regime_factor * signal_factor * risk_factor * time_factor
     
     def calculate_exit_price(self, bar):
         if self.position > 0:  # Long position
@@ -162,14 +167,22 @@ class MarketAgent:
         drawdowns = (cumulative_returns - rolling_max) / rolling_max * 100
         return drawdowns.min()
     
-    def calculate_sharpe_ratio(self, data, risk_free_rate=0.02):
-        daily_returns = data['profit'] / self.initial_balance
-        excess_returns = daily_returns - risk_free_rate/252
-        return np.sqrt(252) * excess_returns.mean() / daily_returns.std()
-    
-    def calculate_sortino_ratio(self, data, risk_free_rate=0.02):
-        daily_returns = data['profit'] / self.initial_balance
+    def calculate_sortino_ratio(self, results, risk_free_rate=0.02):
+        results = results.copy()
+        if 'time' in results.columns:
+            results.set_index('time', inplace=True)
+        
+        daily_returns = results['profit'].groupby(results.index.date).sum() / 100000
         excess_returns = daily_returns - risk_free_rate/252
         downside_returns = daily_returns[daily_returns < 0]
         downside_std = np.sqrt(np.mean(downside_returns**2))
         return np.sqrt(252) * excess_returns.mean() / downside_std if len(downside_returns) > 0 else np.inf
+
+    def calculate_sharpe_ratio(self, results, risk_free_rate=0.02):
+        results = results.copy()
+        if 'time' in results.columns:
+            results.set_index('time', inplace=True)
+            
+        daily_returns = results['profit'].groupby(results.index.date).sum() / 100000
+        excess_returns = daily_returns - risk_free_rate/252
+        return np.sqrt(252) * excess_returns.mean() / daily_returns.std()

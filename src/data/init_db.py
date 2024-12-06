@@ -26,7 +26,7 @@ def init_database():
 
 def load_sample_data():
     """Load sample data for testing"""
-    # Sample data for last 6 months of 5-minute candles
+    # Sample data for last 6 months of 5-minute candles 
     dates = pd.date_range(start='2024-06-01', end='2024-12-05', freq='5T')
     n = len(dates)
     
