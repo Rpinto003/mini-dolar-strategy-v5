@@ -25,17 +25,22 @@ def main():
         analyzer = PerformanceAnalyzer()
 
         # Definir período de análise
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=180)  # 6 meses de dados
-
+        start_date = '2024-06-08'
+        end_date = '2024-12-05'
+        interval = 5  # Intervalo em minutos
+        
         logger.info(f"Running backtest from {start_date} to {end_date}")
 
         # Executar backtest
         results = coordinator.backtest(
-            start_date=start_date.strftime('%Y-%m-%d'),
-            end_date=end_date.strftime('%Y-%m-%d'),
-            interval=5
+            start_date=start_date,
+            end_date=end_date,
+            interval=interval
         )
+        
+        # Inspecionar os dados de resultado
+        print(results[['open', 'high', 'low', 'close', 'volume']].head())
+        print(results[['open', 'high', 'low', 'close', 'volume']].describe())
 
         # Calcular métricas de performance
         metrics = analyzer.calculate_metrics(results)

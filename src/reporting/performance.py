@@ -14,22 +14,22 @@ class PerformanceAnalyzer:
        metrics = {
            'total_trades': len(results[results['trade_executed']]),
            'win_rate': (results['profit'] > 0).mean() * 100,
-           'profit_factor': abs(results[results['profit'] > 0]['profit'].sum() / 
-                              results[results['profit'] < 0]['profit'].sum()),
+           'profit_factor': (abs(results[results['profit'] > 0]['profit'].sum()) / 
+                            abs(results[results['profit'] < 0]['profit'].sum())) if results[results['profit'] < 0]['profit'].sum() != 0 else np.inf,
            'average_win': results[results['profit'] > 0]['profit'].mean(),
            'average_loss': abs(results[results['profit'] < 0]['profit'].mean()),
            'largest_win': results['profit'].max(),
            'largest_loss': results['profit'].min(),
            'max_drawdown': results['drawdown'].min(),
            'recovery_factor': abs(results['cumulative_profit'].iloc[-1] / 
-                                results['drawdown'].min()) if results['drawdown'].min() < 0 else np.inf,
+                            results['drawdown'].min()) if results['drawdown'].min() < 0 else np.inf,
            'profit_per_trade': results['profit'].mean(),
            'sharpe_ratio': self.calculate_sharpe_ratio(results),
            'sortino_ratio': self.calculate_sortino_ratio(results),
            'calmar_ratio': self.calculate_calmar_ratio(results),
            'total_return': results['cumulative_profit'].iloc[-1] / 100000 * 100,
-           'win_loss_ratio': results[results['profit'] > 0]['profit'].mean() / 
-                            abs(results[results['profit'] < 0]['profit'].mean())
+           'win_loss_ratio': (results[results['profit'] > 0]['profit'].mean() / 
+                            abs(results[results['profit'] < 0]['profit'].mean())) if abs(results[results['profit'] < 0]['profit'].mean()) != 0 else np.inf
        }
        return metrics
    
@@ -46,20 +46,26 @@ class PerformanceAnalyzer:
        return np.sqrt(252) * excess_returns.mean() / downside_std if len(downside_returns) > 0 else np.inf
    
     def calculate_calmar_ratio(self, results):
-       annual_return = (results['cumulative_profit'].iloc[-1] / 100000) * (252 / len(results))
-       max_dd = abs(results['drawdown'].min()) / 100
-       return annual_return / max_dd if max_dd > 0 else np.inf
+        total_return = results['cumulative_profit'].iloc[-1] / 100000
+        trading_days = results.index.normalize().nunique()
+        annual_return = total_return * (252 / trading_days) if trading_days > 0 else 0
+        max_dd = abs(results['drawdown'].min()) / 100
+        return annual_return / max_dd if max_dd > 0 else np.inf
    
     def analyze_best_conditions(self, results):
-       results = results.copy()
-       if 'time' in results.columns:
-           results.set_index(pd.to_datetime(results['time']), inplace=True)
-           
-       profitable_trades = results[results['profit'] > 0]
-       best_regime = profitable_trades.groupby('regime')['profit'].mean().idxmax()
-       best_session = profitable_trades.index.hour.value_counts().idxmax()
-       
-       return f"Best Market Regime: {best_regime}\nBest Trading Hour: {best_session:02d}:00"
+        results = results.copy()
+        if 'time' in results.columns:
+            results.set_index(pd.to_datetime(results['time']), inplace=True)
+            
+        profitable_trades = results[results['profit'] > 0]
+        if profitable_trades.empty:
+            best_regime = 'N/A'
+            best_session = 'N/A'
+        else:
+            best_regime = profitable_trades.groupby('regime')['profit'].mean().idxmax()
+            best_session = profitable_trades.index.hour.value_counts().idxmax()
+        
+        return f"Best Market Regime: {best_regime}\nBest Trading Hour: {best_session:02d}:00" if best_regime != 'N/A' else "No profitable trades to analyze best conditions."
    
     def analyze_trade_distribution(self, results):
         results = results.copy()
@@ -68,6 +74,9 @@ class PerformanceAnalyzer:
             
         # Filter for executed trades and get hourly distribution
         executed_trades = results[results['trade_executed']]
+        if executed_trades.empty:
+            return "No executed trades to analyze trade distribution."
+        
         trade_counts = pd.crosstab(
             executed_trades.index.hour,
             executed_trades['regime'],

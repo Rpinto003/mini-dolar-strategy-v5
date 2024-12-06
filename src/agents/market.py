@@ -8,7 +8,9 @@ class MarketAgent:
                  max_position=1,
                  stop_loss=100,
                  take_profit=200,
-                 atr_multiplier=2.0):
+                 atr_multiplier=2.0,
+                 slippage=0.01,  # 1% slippage
+                 fee=5.0):        # $5 por trade
         
         self.initial_balance = initial_balance
         self.balance = initial_balance
@@ -16,57 +18,73 @@ class MarketAgent:
         self.stop_loss = stop_loss
         self.take_profit = take_profit
         self.atr_multiplier = atr_multiplier
-        self.position = 0
-        self.entry_price = 0
+        self.slippage = slippage
+        self.fee = fee
+        self.current_balance = initial_balance
+        self.positions = []  # Lista para armazenar múltiplas posições
         
-    def execute_trades(self, data):
-        df = data.copy()
-        df['position'] = 0
-        df['trade_executed'] = False
-        df['profit'] = 0.0
-        df['cumulative_profit'] = 0.0
-        df['drawdown'] = 0.0
+    def execute_trades(self, data: pd.DataFrame) -> pd.DataFrame:
+        # Assegurar que a coluna 'position' está como float para evitar FutureWarning
+        if 'position' not in data.columns:
+            data['position'] = 0.0
+        else:
+            data['position'] = data['position'].astype(float)
         
-        for i in range(1, len(df)):
-            current_bar = df.iloc[i]
-            prev_bar = df.iloc[i-1]
+        for i, row in data.iterrows():
+            current_bar = row
+            # Lógica para abrir novas posições
+            if current_bar['signal'] == 1 and len(self.positions) < self.max_position:
+                # Abrir posição longa
+                pos = {
+                    'type': 'long',
+                    'entry_price': current_bar['close'],
+                    'stop_loss': current_bar['close'] - self.stop_loss,
+                    'take_profit_1': current_bar['close'] + self.take_profit,
+                    'take_profit_2': current_bar['close'] + 2 * self.take_profit,
+                    'take_profit_3': current_bar['close'] + 3 * self.take_profit,
+                    'breakeven_level': current_bar['close'] + self.take_profit  # Ajuste conforme necessário
+                }
+                self.positions.append(pos)
+                logger.info(f"Abrindo posição longa em {current_bar.name} com preço de entrada {current_bar['close']}")
+                data.at[i, 'position'] += 1.0  # Atualizar posição
+                
+            elif current_bar['signal'] == -1 and len(self.positions) < self.max_position:
+                # Abrir posição curta
+                pos = {
+                    'type': 'short',
+                    'entry_price': current_bar['close'],
+                    'stop_loss': current_bar['close'] + self.stop_loss,
+                    'take_profit_1': current_bar['close'] - self.take_profit,
+                    'take_profit_2': current_bar['close'] - 2 * self.take_profit,
+                    'take_profit_3': current_bar['close'] - 3 * self.take_profit,
+                    'breakeven_level': current_bar['close'] - self.take_profit  # Ajuste conforme necessário
+                }
+                self.positions.append(pos)
+                logger.info(f"Abrindo posição curta em {current_bar.name} com preço de entrada {current_bar['close']}")
+                data.at[i, 'position'] -= 1.0  # Atualizar posição
+
+            # Verificar condições de saída para posições abertas
+            for pos in self.positions[:]:  # Iterar sobre uma cópia da lista
+                if self.check_exit_conditions(current_bar=current_bar, pos=pos):
+                    # Fechar posição
+                    if pos['type'] == 'long':
+                        profit = current_bar['close'] - pos['entry_price']
+                        data.at[i, 'position'] -= 1.0
+                    elif pos['type'] == 'short':
+                        profit = pos['entry_price'] - current_bar['close']
+                        data.at[i, 'position'] += 1.0
+                    self.current_balance += profit
+                    logger.info(f"Fechando posição {pos['type']} em {current_bar.name} com lucro/prejuízo de {profit}")
+                    self.positions.remove(pos)
+                    # Atualizar DataFrame com resultados da operação
+                    data.at[i, 'trade_executed'] = True
+                    data.at[i, 'profit'] = profit
             
-            # Check stop loss and take profit
-            if self.position != 0:
-                if self.check_exit_conditions(current_bar):
-                    exit_price = self.calculate_exit_price(current_bar)
-                    trade_profit = self.calculate_trade_profit(exit_price)
-                    
-                    df.loc[df.index[i], 'position'] = 0
-                    df.loc[df.index[i], 'trade_executed'] = True
-                    df.loc[df.index[i], 'profit'] = trade_profit
-                    self.balance += trade_profit
-                    self.position = 0
-                    continue
-            
-            # Dynamic position sizing based on volatility and account balance
-            position_size = self.calculate_position_size(current_bar)
-            
-            # Entry signals
-            if self.position == 0:
-                if current_bar['final_signal'] == 1 and self.validate_long_entry(current_bar):
-                    self.position = position_size
-                    self.entry_price = current_bar['close']
-                    df.loc[df.index[i], 'position'] = int(position_size)
-                    df.loc[df.index[i], 'trade_executed'] = True
-                    
-                elif current_bar['final_signal'] == -1 and self.validate_short_entry(current_bar):
-                    self.position = -position_size
-                    self.entry_price = current_bar['close']
-                    df.loc[df.index[i], 'position'] = int(-position_size)
-                    df.loc[df.index[i], 'trade_executed'] = True
-            
-            # Update cumulative metrics
-            df.loc[df.index[i], 'cumulative_profit'] = self.balance - self.initial_balance
-            df.loc[df.index[i], 'drawdown'] = self.calculate_drawdown(df.loc[:df.index[i], 'cumulative_profit'])
+            # Atualizar o saldo atual
+            data.at[i, 'current_balance'] = self.current_balance
         
-        return df
-    
+        return data
+
     def validate_long_entry(self, bar):
         return (
             bar['session_active'] and
@@ -83,33 +101,31 @@ class MarketAgent:
             bar['regime'] == 'trending'
         )
     
-    def check_exit_conditions(self, bar):
-        if self.position > 0:  # Long position
-            stop_hit = bar['low'] <= bar['stop_loss']
-            tp1_hit = bar['high'] >= bar['take_profit_1']
-            tp2_hit = bar['high'] >= bar['take_profit_2']
-            tp3_hit = bar['high'] >= bar['take_profit_3']
-            
-            if bar['high'] >= bar['breakeven_level']:
-                bar = bar.copy()
-                bar['stop_loss'] = max(self.entry_price, bar['stop_loss'])
-            
-            return stop_hit or tp1_hit or tp2_hit or tp3_hit
-            
-        elif self.position < 0:  # Short position
-            stop_hit = bar['high'] >= bar['stop_loss']
-            tp1_hit = bar['low'] <= bar['take_profit_1']
-            tp2_hit = bar['low'] <= bar['take_profit_2']
-            tp3_hit = bar['low'] <= bar['take_profit_3']
-            
-            if bar['low'] <= bar['breakeven_level']:
-                bar = bar.copy()
-                bar['stop_loss'] = min(self.entry_price, bar['stop_loss'])
-                
-            return stop_hit or tp1_hit or tp2_hit or tp3_hit
-            
+    def check_exit_conditions(self, current_bar, pos):
+        """
+        Verifica se as condições de saída para uma posição estão atendidas.
+
+        Args:
+            current_bar (pd.Series): Dados do candle atual.
+            pos (dict): Informações sobre a posição atual.
+
+        Returns:
+            bool: True se as condições de saída forem atendidas, False caso contrário.
+        """
+        exit_price = self.calculate_exit_price(current_bar, pos)
+        logger.info(f"Calculando condições de saída para posição {pos['type']} com preço de saída {exit_price} em {current_bar.name}")
+
+        if pos['type'] == 'long':
+            if current_bar['close'] >= exit_price:
+                logger.info(f"Take profit ou stop loss atingido para posição longa em {current_bar.name}")
+                return True
+        elif pos['type'] == 'short':
+            if current_bar['close'] <= exit_price:
+                logger.info(f"Take profit ou stop loss atingido para posição curta em {current_bar.name}")
+                return True
+
         return False
-    
+
     def calculate_position_size(self, bar):
         base_size = self.max_position * 0.5
         
@@ -130,31 +146,52 @@ class MarketAgent:
         
         return base_size * volatility_factor * regime_factor * signal_factor * risk_factor * time_factor
     
-    def calculate_exit_price(self, bar):
-        if self.position > 0:  # Long position
-            if bar['low'] <= bar['stop_loss']:
-                return bar['stop_loss']
-            elif bar['high'] >= bar['take_profit_3']:
-                return bar['take_profit_3']
-            elif bar['high'] >= bar['take_profit_2']:
-                return bar['take_profit_2']
-            elif bar['high'] >= bar['take_profit_1']:
-                return bar['take_profit_1']
-        
-        elif self.position < 0:  # Short position
-            if bar['high'] >= bar['stop_loss']:
-                return bar['stop_loss']
-            elif bar['low'] <= bar['take_profit_3']:
-                return bar['take_profit_3']
-            elif bar['low'] <= bar['take_profit_2']:
-                return bar['take_profit_2']
-            elif bar['low'] <= bar['take_profit_1']:
-                return bar['take_profit_1']
-        
-        return bar['close']
+    def calculate_exit_price(self, current_bar, pos):
+        """
+        Calcula o preço de saída para uma posição com base no candle atual e na posição.
+
+        Args:
+            current_bar (pd.Series): Dados do candle atual.
+            pos (dict): Informações sobre a posição atual.
+
+        Returns:
+            float: Preço de saída calculado.
+        """
+        if pos['type'] == 'long':
+            if current_bar['low'] <= pos['stop_loss']:
+                return pos['stop_loss']
+            elif current_bar['high'] >= pos['take_profit_3']:
+                return pos['take_profit_3']
+            elif current_bar['high'] >= pos['take_profit_2']:
+                return pos['take_profit_2']
+            elif current_bar['high'] >= pos['take_profit_1']:
+                return pos['take_profit_1']
+
+        elif pos['type'] == 'short':
+            if current_bar['high'] >= pos['stop_loss']:
+                return pos['stop_loss']
+            elif current_bar['low'] <= pos['take_profit_3']:
+                return pos['take_profit_3']
+            elif current_bar['low'] <= pos['take_profit_2']:
+                return pos['take_profit_2']
+            elif current_bar['low'] <= pos['take_profit_1']:
+                return pos['take_profit_1']
+
+        return current_bar['close']
     
-    def calculate_trade_profit(self, exit_price):
-        return self.position * (exit_price - self.entry_price)
+    def calculate_trade_profit(self, exit_price, pos):
+        # Aplicar slippage
+        if pos['type'] == 'long':
+            exit_price -= exit_price * self.slippage
+        elif pos['type'] == 'short':
+            exit_price += exit_price * self.slippage
+        
+        profit = pos['size'] * (exit_price - pos['entry_price'])
+        
+        # Aplicar taxa
+        profit -= self.fee
+        
+        return profit
     
     def calculate_drawdown(self, cumulative_profits):
         peak = cumulative_profits.expanding().max()

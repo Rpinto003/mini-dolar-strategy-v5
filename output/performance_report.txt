@@ -1,31 +1,31 @@
 Performance Report
 ===================
 
-Total Trades: 918
-Win Rate: 0.20%
-Profit Factor: 0.11
-Total Return: -0.17%
+Total Trades: 139
+Win Rate: 0.65%
+Profit Factor: 3.46
+Total Return: 1.25%
 
 Trade Statistics
 ----------------
-Average Win: $0.20
-Average Loss: $0.53
-Largest Win: $0.67
-Largest Loss: $-3.17
-Win/Loss Ratio: 0.38
+Average Win: $31.48
+Average Loss: $29.93
+Largest Win: $34.79
+Largest Loss: $-33.90
+Win/Loss Ratio: 1.05
 
 Risk Metrics
 ------------
-Maximum Drawdown: -inf%
-Recovery Factor: 0.00
-Sharpe Ratio: -155.48
-Sortino Ratio: -100.45
-Calmar Ratio: -0.00
+Maximum Drawdown: -28.35%
+Recovery Factor: 44.23
+Sharpe Ratio: 12.28
+Sortino Ratio: 24.15
+Calmar Ratio: 0.37
 
 Trade Analysis
 -------------
 Best Market Regime: trending
-Best Trading Hour: 09:00
+Best Trading Hour: 14:00
 
 Trade Distribution
 -----------------
@@ -33,8 +33,11 @@ Trade Distribution
 Hourly Trade Distribution:
 regime  trending  All
 row_0                
-9            298  298
-10           172  172
-14           288  288
-15           160  160
-All          918  918
+9             38   38
+10            35   35
+11             2    2
+14            38   38
+15            24   24
+16             1    1
+17             1    1
+All          139  139
