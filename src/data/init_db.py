@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import numpy as np
 from loguru import logger
 from pathlib import Path
 
@@ -45,6 +46,5 @@ def load_sample_data():
     conn.close()
 
 if __name__ == '__main__':
-    import numpy as np
     logger.add("logs/init_db_{time}.log")
     load_sample_data()
